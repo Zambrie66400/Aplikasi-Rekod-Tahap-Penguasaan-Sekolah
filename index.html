@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Rekod TP Murid Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        .footer-bar {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-top: 1px solid #cbd5e1;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-full">
+    <div class="min-h-full pb-20">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white p-3 rounded-xl shadow-md">
+                            <span class="text-blue-600 text-2xl">🎓</span>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-white">Aplikasi Rekod TP Murid Sekolah</h1>
+                            <p class="text-blue-100">Sistem Pengurusan Tahap Penguasaan</p>
+                            <div class="flex items-center space-x-3 mt-2">
+                                <span class="text-sm font-medium text-blue-100">Masukkan Nama Sekolah :</span>
+                                <span class="text-lg font-semibold text-white" id="headerSekolah"></span>
+                                <button onclick="kemaskiniNamaSekolah()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 shadow-md">
+                                    ✏️ Masukkan Nama Sekolah
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-blue-200">HAK MILIK</p>
+                        <p class="text-sm font-semibold text-white">2025@ZAMBRIE BIN MOHAMMED</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="bg-white shadow-md border-b border-gray-200 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex space-x-1 py-4">
+                    <button onclick="switchTab('kelas')" id="tab-kelas" class="px-6 py-3 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-300 flex items-center space-x-2">
+                        <span>📊</span>
+                        <span>Senarai Kelas & Subjek</span>
+                    </button>
+                    <button onclick="switchTab('rekod')" id="tab-rekod" class="tab-active px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2">
+                        <span>🏫</span>
+                        <span>Rekod TP Murid</span>
+                    </button>
+                    <button onclick="switchTab('analisis')" id="tab-analisis" class="px-6 py-3 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-300 flex items-center space-x-2">
+                        <span>📈</span>
+                        <span>Analisis TP Kelas</span>
+                    </button>
+                    <button onclick="switchTab('data')" id="tab-data" class="px-6 py-3 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-300 flex items-center space-x-2">
+                        <span>📁</span>
+                        <span>Muat Turun & Data</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 py-8">
+            <!-- Tab 1: Senarai Kelas & Subjek -->
+            <div id="content-kelas" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Kelas Management -->
+                    <div class="card p-8">
+                        <div class="border-b border-gray-200 pb-4 mb-6">
+                            <h3 class="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                                <span>📘</span>
+                                <span>Pengurusan Kelas</span>
+                            </h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex space-x-2">
+                                <input type="text" id="inputKelas" placeholder="Nama Kelas Baru" class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                <button onclick="tambahKelas()" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold">
+                                    Tambah
+                                </button>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold text-gray-700 mb-3">Senarai Kelas:</h4>
+                                <div id="senaraiKelas" class="space-y-2 max-h-60 overflow-y-auto">
+                                    <!-- Kelas akan dipaparkan di sini -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subjek Management -->
+                    <div class="card p-8">
+                        <div class="border-b border-gray-200 pb-4 mb-6">
+                            <h3 class="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                                <span>📚</span>
+                                <span>Pengurusan Subjek</span>
+                            </h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex space-x-2">
+                                <input type="text" id="inputSubjek" placeholder="Nama Subjek Baru" class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                <button onclick="tambahSubjek()" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold">
+                                    Tambah
+                                </button>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold text-gray-700 mb-3">Senarai Subjek:</h4>
+                                <div id="senaraiSubjek" class="space-y-2 max-h-60 overflow-y-auto">
+                                    <!-- Subjek akan dipaparkan di sini -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Rekod TP Murid -->
+            <div id="content-rekod" class="tab-content hidden">
+                <div class="card p-8">
+                    <div class="border-b border-gray-200 pb-4 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center space-x-3">
+                            <span class="bg-blue-100 p-2 rounded-lg">🧑‍🏫</span>
+                            <span>Rekod TP Murid</span>
+                        </h2>
+                        <p class="text-gray-600 mt-2">Masukkan maklumat tahap penguasaan murid untuk semua mata pelajaran</p>
+                    </div>
+
+                    <form id="rekodForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="namaSekolah" class="block text-sm font-semibold text-gray-700 mb-2">Nama Sekolah</label>
+                            <input type="text" id="namaSekolah" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300" placeholder="Masukkan nama sekolah">
+                        </div>
+
+                        <div>
+                            <label for="tahun" class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label>
+                            <select id="tahun" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                <option value="">Pilih Tahun</option>
+                                <option value="1">Tahun 1</option>
+                                <option value="2">Tahun 2</option>
+                                <option value="3">Tahun 3</option>
+                                <option value="4">Tahun 4</option>
+                                <option value="5">Tahun 5</option>
+                                <option value="6">Tahun 6</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="namaMurid" class="block text-sm font-semibold text-gray-700 mb-2">Nama Murid</label>
+                            <input type="text" id="namaMurid" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300" placeholder="Masukkan nama murid">
+                        </div>
+
+                        <div>
+                            <label for="namaKelas" class="block text-sm font-semibold text-gray-700 mb-2">Nama Kelas</label>
+                            <select id="namaKelas" onchange="loadMuridSubjects()" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                <option value="">Pilih Kelas</option>
+                            </select>
+                        </div>
+
+                        <!-- Mata Pelajaran TP Section -->
+                        <div class="md:col-span-2">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                                <span>📚</span>
+                                <span>TP Mata Pelajaran</span>
+                            </h3>
+                            <div id="subjekTPContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <!-- Subjek TP inputs akan dipaparkan di sini -->
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2 bg-blue-50 p-6 rounded-xl border border-blue-200">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold text-blue-800 mb-2">Cadangan TP Keseluruhan (Auto)</label>
+                                    <div id="cadanganTP" class="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl text-blue-800 font-semibold">
+                                        Akan dikira automatik
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="tpManual" class="block text-sm font-semibold text-gray-700 mb-2">TP Keseluruhan Manual (Pilihan)</label>
+                                    <select id="tpManual" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                        <option value="">Gunakan Cadangan Auto</option>
+                                        <option value="1">TP1</option>
+                                        <option value="2">TP2</option>
+                                        <option value="3">TP3</option>
+                                        <option value="4">TP4</option>
+                                        <option value="5">TP5</option>
+                                        <option value="6">TP6</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2 flex space-x-4">
+                            <button type="submit" class="btn-primary text-white px-8 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg">
+                                <span>💾</span>
+                                <span>Simpan Rekod</span>
+                            </button>
+                            <button type="button" onclick="clearForm()" class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-300">
+                                <span>🔄</span>
+                                <span>Kosongkan Borang</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 3: Analisis TP Kelas -->
+            <div id="content-analisis" class="tab-content hidden">
+                <div class="card p-8">
+                    <div class="border-b border-gray-200 pb-4 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center space-x-3">
+                            <span class="bg-green-100 p-2 rounded-lg">📈</span>
+                            <span>Analisis TP Kelas</span>
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label for="analisisKelas" class="block text-sm font-semibold text-gray-700 mb-2">Pilih Kelas</label>
+                            <select id="analisisKelas" onchange="updateAnalisis()" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                                <option value="">Pilih Kelas</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 w-full">
+                                <p class="text-sm text-blue-700 font-medium">📊 Analisis berdasarkan TP Keseluruhan murid dalam kelas yang dipilih</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jadual Statistik TP -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">📊 Jadual Statistik TP</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full border-collapse border border-gray-300 rounded-lg overflow-hidden">
+                                <thead class="bg-blue-600 text-white">
+                                    <tr>
+                                        <th class="border border-gray-300 px-4 py-3 text-center font-semibold">Tahap Penguasaan</th>
+                                        <th class="border border-gray-300 px-4 py-3 text-center font-semibold">Bilangan Murid</th>
+                                        <th class="border border-gray-300 px-4 py-3 text-center font-semibold">Peratus (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statistikTable">
+                                    <!-- Data statistik akan dipaparkan di sini -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-xl border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Carta Bar - Jumlah Murid mengikut TP</h3>
+                            <canvas id="barChart" width="400" height="300"></canvas>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Carta Pai - Peratusan Penguasaan</h3>
+                            <canvas id="pieChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+
+                    <div id="ringkasanAnalisis" class="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-3">Ringkasan Analisis</h3>
+                        <p class="text-blue-700">Pilih kelas dan subjek untuk melihat analisis.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Muat Turun & Data -->
+            <div id="content-data" class="tab-content hidden">
+                <div class="card p-8">
+                    <div class="border-b border-gray-200 pb-4 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center space-x-3">
+                            <span class="bg-purple-100 p-2 rounded-lg">📁</span>
+                            <span>Muat Turun & Data</span>
+                        </h2>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse border border-gray-300 rounded-xl overflow-hidden">
+                            <thead class="bg-blue-600 text-white">
+                                <tr>
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Nama Sekolah</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Tahun</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Nama Murid</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Kelas</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">TP Mata Pelajaran</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">TP Keseluruhan</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTable">
+                                <!-- Data akan dipaparkan di sini -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer Bar Kawalan Data -->
+    <footer class="footer-bar fixed bottom-0 left-0 right-0 py-4 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-center space-x-4">
+                <button onclick="simpanData()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-300 shadow-lg" title="Simpan semua data">
+                    <span>💾</span>
+                    <span>Simpan Data</span>
+                </button>
+                <button onclick="eksportExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-300 shadow-lg" title="Eksport ke Excel">
+                    <span>⬇️</span>
+                    <span>Eksport Excel</span>
+                </button>
+                <button onclick="document.getElementById('importFile').click()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-300 shadow-lg" title="Import dari Excel">
+                    <span>⬆️</span>
+                    <span>Import Excel</span>
+                </button>
+                <button onclick="cetakPDF()" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-300 shadow-lg" title="Cetak laporan PDF">
+                    <span>🖨️</span>
+                    <span>Cetak PDF</span>
+                </button>
+                <button onclick="resetData()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-300 shadow-lg" title="Reset semua data">
+                    <span>🔄</span>
+                    <span>Reset Data</span>
+                </button>
+            </div>
+        </div>
+        <input type="file" id="importFile" accept=".xlsx,.xls" style="display: none;" onchange="importExcel(event)">
+    </footer>
+
+    <script>
+        // Global variables
+        let muridData = JSON.parse(localStorage.getItem('muridData')) || [];
+        let kelasList = JSON.parse(localStorage.getItem('kelasList')) || ['4 Cemerlang', '4 Bijak', '5 Arif', '5 Bestari'];
+        let subjekList = JSON.parse(localStorage.getItem('subjekList')) || ['Bahasa Melayu', 'Bahasa Inggeris', 'Matematik', 'Sains'];
+        let namaSekolahUtama = localStorage.getItem('namaSekolahUtama') || '';
+        let barChart, pieChart;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set kelas tab as active initially
+            switchTab('kelas');
+            
+            loadDropdowns();
+            updateDataTable();
+            updateSenaraiKelas();
+            updateSenaraiSubjek();
+            updateAnalisisDropdowns();
+            updateHeaderSekolah();
+            
+            // Auto-save on form changes
+            document.getElementById('rekodForm').addEventListener('input', autoSave);
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+                tab.classList.remove('tab-active');
+                tab.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+            });
+            
+            // Show selected content
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            
+            // Add active class to selected tab
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            activeTab.classList.add('tab-active');
+            activeTab.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+        }
+
+
+
+        // Load dropdowns
+        function loadDropdowns() {
+            const kelasSelect = document.getElementById('namaKelas');
+            
+            kelasSelect.innerHTML = '<option value="">Pilih Kelas</option>';
+            
+            kelasList.forEach(kelas => {
+                kelasSelect.innerHTML += `<option value="${kelas}">${kelas}</option>`;
+            });
+        }
+
+        // Load subjects for selected student
+        function loadMuridSubjects() {
+            const kelas = document.getElementById('namaKelas').value;
+            const container = document.getElementById('subjekTPContainer');
+            
+            if (!kelas) {
+                container.innerHTML = '<p class="text-gray-500 col-span-full text-center py-8">Pilih kelas terlebih dahulu</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            subjekList.forEach(subjek => {
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">${subjek}</label>
+                        <select id="tp-${subjek.replace(/\s+/g, '')}" onchange="calculateOverallTP()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                            <option value="">Pilih TP</option>
+                            <option value="1">TP1</option>
+                            <option value="2">TP2</option>
+                            <option value="3">TP3</option>
+                            <option value="4">TP4</option>
+                            <option value="5">TP5</option>
+                            <option value="6">TP6</option>
+                        </select>
+                    </div>
+                `;
+            });
+        }
+
+        // Calculate overall TP based on all subjects
+        function calculateOverallTP() {
+            const tpValues = [];
+            
+            subjekList.forEach(subjek => {
+                const selectId = `tp-${subjek.replace(/\s+/g, '')}`;
+                const select = document.getElementById(selectId);
+                if (select && select.value) {
+                    tpValues.push(parseInt(select.value));
+                }
+            });
+            
+            if (tpValues.length === 0) {
+                document.getElementById('cadanganTP').textContent = 'Akan dikira automatik';
+                return;
+            }
+            
+            const average = tpValues.reduce((sum, tp) => sum + tp, 0) / tpValues.length;
+            let cadangan;
+            
+            if (average < 2.0) cadangan = 'TP1';
+            else if (average < 3.0) cadangan = 'TP2';
+            else if (average < 4.0) cadangan = 'TP3';
+            else if (average < 5.0) cadangan = 'TP4';
+            else if (average < 5.6) cadangan = 'TP5';
+            else cadangan = 'TP6';
+            
+            document.getElementById('cadanganTP').textContent = `${cadangan} (Purata: ${average.toFixed(2)})`;
+        }
+
+        // Auto-save form data
+        function autoSave() {
+            const formData = {
+                namaSekolah: document.getElementById('namaSekolah').value,
+                tahun: document.getElementById('tahun').value,
+                namaMurid: document.getElementById('namaMurid').value,
+                namaKelas: document.getElementById('namaKelas').value,
+                tpManual: document.getElementById('tpManual').value
+            };
+            
+            // Save subject TPs
+            const subjectTPs = {};
+            subjekList.forEach(subjek => {
+                const selectId = `tp-${subjek.replace(/\s+/g, '')}`;
+                const select = document.getElementById(selectId);
+                if (select) {
+                    subjectTPs[subjek] = select.value;
+                }
+            });
+            formData.subjectTPs = subjectTPs;
+            
+            localStorage.setItem('currentForm', JSON.stringify(formData));
+        }
+
+        // Form submission
+        document.getElementById('rekodForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const namaSekolah = document.getElementById('namaSekolah').value;
+            const tahun = document.getElementById('tahun').value;
+            const namaMurid = document.getElementById('namaMurid').value;
+            const namaKelas = document.getElementById('namaKelas').value;
+            const tpManual = document.getElementById('tpManual').value;
+            const cadanganText = document.getElementById('cadanganTP').textContent;
+            
+            // Collect all subject TPs
+            const subjectTPs = {};
+            let hasAnyTP = false;
+            
+            subjekList.forEach(subjek => {
+                const selectId = `tp-${subjek.replace(/\s+/g, '')}`;
+                const select = document.getElementById(selectId);
+                if (select && select.value) {
+                    subjectTPs[subjek] = select.value;
+                    hasAnyTP = true;
+                }
+            });
+            
+            if (!namaSekolah || !namaMurid || !namaKelas || !hasAnyTP) {
+                showNotification('Sila lengkapkan maklumat asas dan sekurang-kurangnya satu TP mata pelajaran!', 'error');
+                return;
+            }
+            
+            // Extract cadangan TP from text
+            const cadanganTP = cadanganText.includes('TP') ? cadanganText.split(' ')[0] : 'TP1';
+            const finalTP = tpManual || cadanganTP;
+            
+            const formData = {
+                id: Date.now(),
+                namaSekolah: namaSekolah,
+                tahun: tahun,
+                namaMurid: namaMurid,
+                namaKelas: namaKelas,
+                subjectTPs: subjectTPs,
+                cadanganTP: cadanganTP,
+                tpManual: finalTP,
+                tpKeseluruhan: finalTP
+            };
+            
+            muridData.push(formData);
+            localStorage.setItem('muridData', JSON.stringify(muridData));
+            
+            showNotification('Rekod berjaya disimpan!', 'success');
+            clearForm();
+            updateDataTable();
+        });
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('rekodForm').reset();
+            document.getElementById('cadanganTP').textContent = 'Akan dikira automatik';
+            document.getElementById('subjekTPContainer').innerHTML = '<p class="text-gray-500 col-span-full text-center py-8">Pilih kelas terlebih dahulu</p>';
+            localStorage.removeItem('currentForm');
+        }
+
+        // Kelas management
+        function tambahKelas() {
+            const input = document.getElementById('inputKelas');
+            const kelas = input.value.trim();
+            
+            if (kelas && !kelasList.includes(kelas)) {
+                kelasList.push(kelas);
+                localStorage.setItem('kelasList', JSON.stringify(kelasList));
+                input.value = '';
+                updateSenaraiKelas();
+                loadDropdowns();
+                updateAnalisisDropdowns();
+                showNotification(`Kelas "${kelas}" berjaya ditambah!`, 'success');
+            }
+        }
+
+        function padamKelas(kelas) {
+            kelasList = kelasList.filter(k => k !== kelas);
+            localStorage.setItem('kelasList', JSON.stringify(kelasList));
+            updateSenaraiKelas();
+            loadDropdowns();
+            updateAnalisisDropdowns();
+            showNotification(`Kelas "${kelas}" berjaya dipadam!`, 'success');
+        }
+
+        function updateSenaraiKelas() {
+            const container = document.getElementById('senaraiKelas');
+            container.innerHTML = '';
+            
+            kelasList.forEach(kelas => {
+                container.innerHTML += `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border">
+                        <span class="font-medium">${kelas}</span>
+                        <button onclick="padamKelas('${kelas}')" class="text-red-600 hover:text-red-800 font-semibold">
+                            🗑️ Padam
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // Subjek management
+        function tambahSubjek() {
+            const input = document.getElementById('inputSubjek');
+            const subjek = input.value.trim();
+            
+            if (subjek && !subjekList.includes(subjek)) {
+                subjekList.push(subjek);
+                localStorage.setItem('subjekList', JSON.stringify(subjekList));
+                input.value = '';
+                updateSenaraiSubjek();
+                loadDropdowns();
+                updateAnalisisDropdowns();
+                showNotification(`Subjek "${subjek}" berjaya ditambah!`, 'success');
+            }
+        }
+
+        function padamSubjek(subjek) {
+            subjekList = subjekList.filter(s => s !== subjek);
+            localStorage.setItem('subjekList', JSON.stringify(subjekList));
+            updateSenaraiSubjek();
+            loadDropdowns();
+            updateAnalisisDropdowns();
+            showNotification(`Subjek "${subjek}" berjaya dipadam!`, 'success');
+        }
+
+        function updateSenaraiSubjek() {
+            const container = document.getElementById('senaraiSubjek');
+            container.innerHTML = '';
+            
+            subjekList.forEach(subjek => {
+                container.innerHTML += `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border">
+                        <span class="font-medium">${subjek}</span>
+                        <button onclick="padamSubjek('${subjek}')" class="text-red-600 hover:text-red-800 font-semibold">
+                            🗑️ Padam
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // Update analysis dropdowns
+        function updateAnalisisDropdowns() {
+            const kelasSelect = document.getElementById('analisisKelas');
+            
+            kelasSelect.innerHTML = '<option value="">Pilih Kelas</option>';
+            
+            kelasList.forEach(kelas => {
+                kelasSelect.innerHTML += `<option value="${kelas}">${kelas}</option>`;
+            });
+        }
+
+        // Update analysis
+        function updateAnalisis() {
+            const kelas = document.getElementById('analisisKelas').value;
+            
+            if (!kelas) {
+                // Clear table and charts if no selection
+                document.getElementById('statistikTable').innerHTML = '';
+                document.getElementById('ringkasanAnalisis').innerHTML = `
+                    <h3 class="text-lg font-semibold text-blue-800 mb-3">Ringkasan Analisis</h3>
+                    <p class="text-blue-700">Pilih kelas untuk melihat analisis.</p>
+                `;
+                return;
+            }
+            
+            const filteredData = muridData.filter(m => m.namaKelas === kelas);
+            
+            if (filteredData.length === 0) {
+                document.getElementById('ringkasanAnalisis').innerHTML = `
+                    <h3 class="text-lg font-semibold text-blue-800 mb-3">Ringkasan Analisis</h3>
+                    <p class="text-blue-700">Tiada data untuk kelas ${kelas}.</p>
+                `;
+                document.getElementById('statistikTable').innerHTML = '';
+                return;
+            }
+            
+            // Count TP distribution based on overall TP (tpKeseluruhan)
+            const tpCount = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
+            let totalStudents = 0;
+            
+            filteredData.forEach(m => {
+                const tpKeseluruhan = m.tpKeseluruhan || m.tpManual;
+                if (tpKeseluruhan) {
+                    const tp = parseInt(tpKeseluruhan);
+                    if (tp >= 1 && tp <= 6) {
+                        tpCount[tp]++;
+                        totalStudents++;
+                    }
+                }
+            });
+            
+            if (totalStudents === 0) {
+                document.getElementById('ringkasanAnalisis').innerHTML = `
+                    <h3 class="text-lg font-semibold text-blue-800 mb-3">Ringkasan Analisis</h3>
+                    <p class="text-blue-700">Tiada data TP Keseluruhan untuk kelas ${kelas}.</p>
+                `;
+                document.getElementById('statistikTable').innerHTML = '';
+                return;
+            }
+            
+            // Update statistics table
+            updateStatistikTable(tpCount, totalStudents);
+            
+            // Create charts
+            createBarChart(tpCount);
+            createPieChart(tpCount);
+            
+            // Generate summary
+            const majorityTP = Object.keys(tpCount).reduce((a, b) => tpCount[a] > tpCount[b] ? a : b);
+            const tp1Count = tpCount[1];
+            const tp6Count = tpCount[6];
+            
+            document.getElementById('ringkasanAnalisis').innerHTML = `
+                <h3 class="text-lg font-semibold text-blue-800 mb-3">Ringkasan Analisis Kelas ${kelas}</h3>
+                <p class="text-blue-700 mb-2">📊 Majoriti murid mencapai TP${majorityTP} (${tpCount[majorityTP]} orang)</p>
+                <p class="text-blue-700 mb-2">👥 Jumlah murid: ${totalStudents} orang</p>
+                <p class="text-blue-700 mb-2">🔴 TP1: ${tp1Count} murid ${tp1Count > 0 ? '(Perlu perhatian khusus)' : '(Tiada)'}</p>
+                <p class="text-blue-700">🟢 TP6: ${tp6Count} murid ${tp6Count > 0 ? '(Pencapaian cemerlang)' : '(Tiada)'}</p>
+            `;
+        }
+
+        // Update statistics table
+        function updateStatistikTable(tpCount, totalStudents) {
+            const tbody = document.getElementById('statistikTable');
+            tbody.innerHTML = '';
+            
+            for (let tp = 1; tp <= 6; tp++) {
+                const count = tpCount[tp];
+                const percentage = totalStudents > 0 ? ((count / totalStudents) * 100).toFixed(1) : 0;
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="border border-gray-300 px-4 py-3 text-center font-semibold">TP${tp}</td>
+                        <td class="border border-gray-300 px-4 py-3 text-center">${count}</td>
+                        <td class="border border-gray-300 px-4 py-3 text-center">${percentage}%</td>
+                    </tr>
+                `;
+            }
+            
+            // Add total row
+            tbody.innerHTML += `
+                <tr class="bg-blue-50 font-semibold">
+                    <td class="border border-gray-300 px-4 py-3 text-center">JUMLAH</td>
+                    <td class="border border-gray-300 px-4 py-3 text-center">${totalStudents}</td>
+                    <td class="border border-gray-300 px-4 py-3 text-center">100.0%</td>
+                </tr>
+            `;
+        }
+
+        // Create bar chart
+        function createBarChart(tpCount) {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            
+            if (barChart) {
+                barChart.destroy();
+            }
+            
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['TP1', 'TP2', 'TP3', 'TP4', 'TP5', 'TP6'],
+                    datasets: [{
+                        label: 'Jumlah Murid',
+                        data: [tpCount[1], tpCount[2], tpCount[3], tpCount[4], tpCount[5], tpCount[6]],
+                        backgroundColor: [
+                            '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'
+                        ],
+                        borderColor: [
+                            '#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#2563eb', '#7c3aed'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create pie chart
+        function createPieChart(tpCount) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            
+            if (pieChart) {
+                pieChart.destroy();
+            }
+            
+            const total = Object.values(tpCount).reduce((a, b) => a + b, 0);
+            const data = Object.values(tpCount).filter(count => count > 0);
+            const labels = Object.keys(tpCount).filter(tp => tpCount[tp] > 0).map(tp => `TP${tp}`);
+            
+            pieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update data table
+        function updateDataTable() {
+            const tbody = document.getElementById('dataTable');
+            tbody.innerHTML = '';
+            
+            muridData.forEach(data => {
+                // Format subject TPs for display
+                let subjectTPsDisplay = '';
+                if (data.subjectTPs) {
+                    subjectTPsDisplay = Object.entries(data.subjectTPs)
+                        .map(([subjek, tp]) => `${subjek}: TP${tp}`)
+                        .join(', ');
+                } else if (data.namaSubjek && data.tpMurid) {
+                    // For backward compatibility with old data format
+                    subjectTPsDisplay = `${data.namaSubjek}: TP${data.tpMurid}`;
+                }
+                
+                const tpKeseluruhan = data.tpKeseluruhan || data.tpManual;
+                const tpDisplay = tpKeseluruhan ? `TP${tpKeseluruhan}` : '-';
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="border border-gray-300 px-4 py-3">${data.namaSekolah}</td>
+                        <td class="border border-gray-300 px-4 py-3">Tahun ${data.tahun}</td>
+                        <td class="border border-gray-300 px-4 py-3">${data.namaMurid}</td>
+                        <td class="border border-gray-300 px-4 py-3">${data.namaKelas}</td>
+                        <td class="border border-gray-300 px-4 py-3 text-sm">${subjectTPsDisplay}</td>
+                        <td class="border border-gray-300 px-4 py-3">${tpDisplay}</td>
+                        <td class="border border-gray-300 px-4 py-3">
+                            <button onclick="padamRekod(${data.id})" class="text-red-600 hover:text-red-800 font-semibold">
+                                🗑️ Padam
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Delete record
+        function padamRekod(id) {
+            muridData = muridData.filter(data => data.id !== id);
+            localStorage.setItem('muridData', JSON.stringify(muridData));
+            updateDataTable();
+            showNotification('Rekod berjaya dipadam!', 'success');
+        }
+
+        // Footer functions
+        function simpanData() {
+            localStorage.setItem('muridData', JSON.stringify(muridData));
+            localStorage.setItem('kelasList', JSON.stringify(kelasList));
+            localStorage.setItem('subjekList', JSON.stringify(subjekList));
+            showNotification('Semua data berjaya disimpan!', 'success');
+        }
+
+        function eksportExcel() {
+            if (muridData.length === 0) {
+                showNotification('Tiada data untuk dieksport!', 'error');
+                return;
+            }
+            
+            const ws = XLSX.utils.json_to_sheet(muridData.map(data => ({
+                'Nama Sekolah': data.namaSekolah,
+                'Tahun': `Tahun ${data.tahun}`,
+                'Nama Murid': data.namaMurid,
+                'Kelas': data.namaKelas,
+                'Mata Pelajaran': data.namaSubjek,
+                'TP Murid': `TP${data.tpMurid}`,
+                'Cadangan TP': data.cadanganTP,
+                'TP Manual': data.tpManual
+            })));
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Data TP Murid');
+            
+            const fileName = `Rekod_TP_Murid_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            showNotification('Data berjaya dieksport ke Excel!', 'success');
+        }
+
+        function importExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    jsonData.forEach(row => {
+                        const newData = {
+                            id: Date.now() + Math.random(),
+                            namaSekolah: row['Nama Sekolah'] || '',
+                            tahun: row['Tahun'] ? row['Tahun'].replace('Tahun ', '') : '',
+                            namaMurid: row['Nama Murid'] || '',
+                            namaKelas: row['Kelas'] || '',
+                            namaSubjek: row['Mata Pelajaran'] || '',
+                            tpMurid: row['TP Murid'] ? row['TP Murid'].replace('TP', '') : '',
+                            cadanganTP: row['Cadangan TP'] || '',
+                            tpManual: row['TP Manual'] || ''
+                        };
+                        
+                        if (newData.namaMurid && newData.namaKelas && newData.namaSubjek) {
+                            muridData.push(newData);
+                        }
+                    });
+                    
+                    localStorage.setItem('muridData', JSON.stringify(muridData));
+                    updateDataTable();
+                    showNotification('Data berjaya diimport dari Excel!', 'success');
+                } catch (error) {
+                    showNotification('Ralat semasa import fail Excel!', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+
+        function resetData() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full mx-4">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Pengesahan Reset Data</h3>
+                    <p class="text-gray-600 mb-6">Adakah anda pasti ingin memadam SEMUA data? Tindakan ini tidak boleh dibatalkan.</p>
+                    <div class="flex space-x-4">
+                        <button onclick="confirmReset()" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold">
+                            Ya, Padam Semua
+                        </button>
+                        <button onclick="closeModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg font-semibold">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            window.confirmReset = function() {
+                localStorage.clear();
+                muridData = [];
+                kelasList = ['4 Cemerlang', '4 Bijak', '5 Arif', '5 Bestari'];
+                subjekList = ['Bahasa Melayu', 'Bahasa Inggeris', 'Matematik', 'Sains'];
+                
+                loadDropdowns();
+                updateDataTable();
+                updateSenaraiKelas();
+                updateSenaraiSubjek();
+                updateAnalisisDropdowns();
+                clearForm();
+                
+                closeModal();
+                showNotification('Semua data berjaya direset!', 'success');
+            };
+            
+            window.closeModal = function() {
+                document.body.removeChild(modal);
+            };
+        }
+
+        // Update header sekolah
+        function updateHeaderSekolah() {
+            const headerElement = document.getElementById('headerSekolah');
+            const buttonElement = document.querySelector('button[onclick="kemaskiniNamaSekolah()"]');
+            
+            if (namaSekolahUtama) {
+                headerElement.textContent = namaSekolahUtama;
+                buttonElement.innerHTML = '✏️ Kemaskini';
+                buttonElement.className = 'bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300';
+                
+                // Auto-fill form if empty
+                const formSekolah = document.getElementById('namaSekolah');
+                if (formSekolah && !formSekolah.value) {
+                    formSekolah.value = namaSekolahUtama;
+                }
+            } else {
+                headerElement.textContent = '';
+                buttonElement.innerHTML = '✏️ Masukkan Nama Sekolah';
+                buttonElement.className = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 shadow-md';
+            }
+        }
+
+        // Kemaskini nama sekolah
+        function kemaskiniNamaSekolah() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full mx-4">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Kemaskini Nama Sekolah</h3>
+                    <input type="text" id="inputNamaSekolah" value="${namaSekolahUtama}" placeholder="Masukkan nama sekolah" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-6">
+                    <div class="flex space-x-4">
+                        <button onclick="simpanNamaSekolah()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold">
+                            Simpan
+                        </button>
+                        <button onclick="closeModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg font-semibold">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Focus on input
+            setTimeout(() => {
+                document.getElementById('inputNamaSekolah').focus();
+            }, 100);
+            
+            window.simpanNamaSekolah = function() {
+                const namaSekolah = document.getElementById('inputNamaSekolah').value.trim();
+                if (namaSekolah) {
+                    namaSekolahUtama = namaSekolah;
+                    localStorage.setItem('namaSekolahUtama', namaSekolahUtama);
+                    updateHeaderSekolah();
+                    showNotification('Nama sekolah berjaya dikemaskini!', 'success');
+                } else {
+                    showNotification('Sila masukkan nama sekolah!', 'error');
+                    return;
+                }
+                closeModal();
+            };
+            
+            window.closeModal = function() {
+                document.body.removeChild(modal);
+            };
+        }
+
+        // Cetak PDF
+        function cetakPDF() {
+            if (muridData.length === 0) {
+                showNotification('Tiada data untuk dicetak!', 'error');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('LAPORAN REKOD TP MURID SEKOLAH', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(namaSekolahUtama || 'Nama Sekolah Belum Ditetapkan', 105, 30, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.text(`Tarikh: ${new Date().toLocaleDateString('ms-MY')}`, 105, 40, { align: 'center' });
+            
+            // Prepare table data
+            const tableData = muridData.map(data => {
+                let subjectTPsDisplay = '';
+                if (data.subjectTPs) {
+                    subjectTPsDisplay = Object.entries(data.subjectTPs)
+                        .map(([subjek, tp]) => `${subjek}: TP${tp}`)
+                        .join('\n');
+                } else if (data.namaSubjek && data.tpMurid) {
+                    subjectTPsDisplay = `${data.namaSubjek}: TP${data.tpMurid}`;
+                }
+                
+                return [
+                    data.namaSekolah,
+                    `Tahun ${data.tahun}`,
+                    data.namaMurid,
+                    data.namaKelas,
+                    subjectTPsDisplay,
+                    data.cadanganTP,
+                    data.tpKeseluruhan || data.tpManual
+                ];
+            });
+            
+            // Create table
+            doc.autoTable({
+                head: [['Sekolah', 'Tahun', 'Nama Murid', 'Kelas', 'TP Mata Pelajaran', 'Cadangan TP', 'TP Keseluruhan']],
+                body: tableData,
+                startY: 50,
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2
+                },
+                headStyles: {
+                    fillColor: [59, 130, 246],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                columnStyles: {
+                    4: { cellWidth: 40 } // TP Mata Pelajaran column wider
+                }
+            });
+            
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.text('HAK MILIK: 2025@ZAMBRIE BIN MOHAMMED', 105, doc.internal.pageSize.height - 10, { align: 'center' });
+                doc.text(`Halaman ${i} dari ${pageCount}`, 200, doc.internal.pageSize.height - 10, { align: 'right' });
+            }
+            
+            // Save PDF
+            const fileName = `Laporan_TP_Murid_${namaSekolahUtama.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+            
+            showNotification('Laporan PDF berjaya dicetak!', 'success');
+        }
+
+        // Notification system
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-xl shadow-lg z-50 transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994831dc14c935be',t:'MTc2MTQ2MzI2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
